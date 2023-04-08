@@ -12,5 +12,5 @@ struct Move {
     char piece;
 };
 
-void genallmoves(struct Move *moves, int (*board)[BLEN], bool white);
+struct Move* genallmoves(struct Move *moves, int (*board)[BLEN], bool white);
 

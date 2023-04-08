@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "chess.h"
 
-#define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr"
+#define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/3p4/ppp1pppp/rnbqkbnr"
 #define INPUTSIZE 5
 #define MAXMOVES 512
 
@@ -27,15 +27,16 @@ int main(int argc, char *argv[]) {
     genboard(INITFEN, board);
     printboard(board);
     /*takeinput(input);*/
-    genallmoves(moves, board, true);
-    for (i = 0; i < MAXMOVES; i++) {
+    struct Move *end = genallmoves(moves, board, true);
+    for (i = 0; i < end - &(moves[0]); i++) {
         struct Move move = moves[i];
-        printmove(&move);
+       printmove(&move);
     }
 
     printf("%s\n", input);
 }
 
+/* printmove: translate list indeces to chess ranks and files and print*/
 void printmove(struct Move *move) {
     printf("%c%c%i %c%i\n", move->piece, move->xo+97, 8-move->yo, move->xf+97, 8-move->yf);
 }
@@ -51,6 +52,7 @@ void takeinput(char *s) {
         s[i] = 0;
 }
 
+/* printboard: print a text-based chess board */
 void printboard(int (*board)[BLEN]) {
     int y, x, c;
     printf("%s", TOPBOR);
@@ -67,6 +69,7 @@ void printboard(int (*board)[BLEN]) {
     printf("%s", FILES);
 }
 
+/* genboard: generate a board from a fen into *board */
 void genboard(char *fen, int (*board)[BLEN]) {
     char c;
     int i, x, y;
