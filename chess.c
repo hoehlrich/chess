@@ -3,20 +3,47 @@
 
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
 
-struct Move newmove(int yo, int xo, int yf, int xf, char piece);
 bool isopponent(char piece, char target);
 bool insideboard(int y, int x);
+bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white);
+struct Move newmove(int yo, int xo, int yf, int xf, char piece);
 struct Move* genpiecemoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* pawnmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* knightmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* slidingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
-struct Move* rookmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
-struct Move* queenmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* kingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
+void unmakemove(struct Move *move, int (*board)[BLEN], int op);
 
 static const int yd[] = { 1, 1, -1, -1, 1, 0, -1, 0 };
 static const int xd[] = { 1, -1, 1, -1, 0, 1, 0, -1 };
 
+bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white) {
+    int i;
+    struct Move move;
+    for (i = 0; i < nummoves; i++) {
+        move = moves[i];
+        if (white) {
+            if (board[move.yf][move.xf] == 'k')
+                return true;
+        } else {
+            if (board[move.yf][move.xf] == 'K')
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void makemove(struct Move *move, int (*board)[BLEN]) {
+    board[move->yo][move->xo] = 0;
+    board[move->yf][move->xf] = move->piece;
+}
+
+/* unmake move: undo move; op is original piece on the target square */
+void unmakemove(struct Move *move, int (*board)[BLEN], int op) {
+    board[move->yo][move->xo] = move->piece;
+    board[move->yf][move->xf] = op;
+}
 
 struct Move newmove(int yo, int xo, int yf, int xf, char piece) {
     struct Move move = { yo, xo, yf, xf, piece };
@@ -33,15 +60,40 @@ bool insideboard(int y, int x) {
 
 /* genallmoves: generate all moves for a player on top of *move. Returns a
  * pointer to the last element */
-struct Move* genallmoves(struct Move *moves, int (*board)[BLEN], bool white) {
+struct Move* genallmoves(struct Move *moves, int (*board)[BLEN], bool white, bool checkcheck) {
     int x, y;
-    if (white) {
-        for (y = 0; y < BLEN; y++)
-            for (x = 0; x < BLEN; x++)
-                if (islower(board[y][x])) {
-                    moves = genpiecemoves(moves, y, x, board);
-                }
+    struct Move *initmoves = moves;
+    for (y = 0; y < BLEN; y++)
+        for (x = 0; x < BLEN; x++)
+            if ((islower(board[y][x]) && white) || (isupper(board[y][x]) && !white))
+                moves = genpiecemoves(moves, y, x, board);
+
+    /* break if not checking for checks (prevents infinite recursion */
+    if (!checkcheck)
+        return moves;
+    
+    /* remove moves that will result in a self-check */
+    int i, nummoves;
+    int op;
+    struct Move move;
+    struct Move testmoves[MAXMOVES];
+
+    struct Move *testmovesp = &(testmoves[0]);
+    struct Move *testmovesinit = testmoves;
+    nummoves = moves - initmoves;
+    for (i = 0; i < nummoves; i++) {
+        move = initmoves[i];
+        op = board[move.yf][move.xf];
+        makemove(&move, board);
+        testmovesp = genallmoves(testmoves, board, !white, false);
+        if (checking(testmovesinit, testmovesp - testmovesinit, board, white)) {
+            initmoves[i] = *moves;
+            moves -= 1;
+        }
+        unmakemove(&move, board, op);
+        
     }
+    return moves;
 }
 
 /* genpiecemoves: generate all moves for a piece on top of *move. Returns a
@@ -80,7 +132,7 @@ struct Move* pawnmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]) {
     }
     int i = 0;
     moved = (islower(piece) && yo != 6) || (isupper(piece) && yo != 1);
-    if ((board[yo+to][xo] == 0) && !moved)
+    if ((board[yo+to][xo] == 0) && !moved && (board[yo+so][xo] == 0))
         moves[i++] = newmove(yo, xo, yo+to, xo, piece);
     if (board[yo+so][xo] == 0)
         moves[i++] = newmove(yo, xo, yo+so, xo, piece);
@@ -136,10 +188,14 @@ struct Move* slidingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]
         yf = yo + yd[j];
         xf = xo + xd[j];
         while (insideboard(yf, xf)) {
-            if (board[yf][xf] == 0 || isopponent(piece, board[yf][xf]))
+            if (board[yf][xf] == 0) {
                 moves[i++] = newmove(yo, xo, yf, xf, piece);
-            else
+            } else if (isopponent(piece, board[yf][xf])) {
+                moves[i++] = newmove(yo, xo, yf, xf, piece);
                 break;
+            } else {
+                break;
+            }
             yf += yd[j];
             xf += xd[j];
         }

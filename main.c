@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include "chess.h"
 
-#define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/3p4/ppp1pppp/rnbqkbnr"
+#define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr"
 #define INPUTSIZE 5
-#define MAXMOVES 512
 
 #define TOPBOR  " |‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|‾‾‾‾‾|\n"
 #define MIDBOR  " |     |     |     |     |     |     |     |     |\n"
@@ -16,24 +15,78 @@ void genboard(char *fen, int (*board)[BLEN]);
 void printboard(int (*board)[BLEN]);
 void takeinput(char *s);
 void printmove(struct Move *move);
+struct Move* parseinput(char *s, struct Move *moves, int nummoves);
 
 int main(int argc, char *argv[]) {
     CLS
     int board[BLEN][BLEN] = {{0}};
-    char input[5];
+    char input[INPUTSIZE];
     struct Move moves[MAXMOVES];
-    int i;
+    struct Move *move;
+    int i, nummoves;
 
     genboard(INITFEN, board);
-    printboard(board);
-    /*takeinput(input);*/
-    struct Move *end = genallmoves(moves, board, true);
-    for (i = 0; i < end - &(moves[0]); i++) {
-        struct Move move = moves[i];
-       printmove(&move);
-    }
 
-    printf("%s\n", input);
+    /* game loop */
+    i = 0;
+    while (true) {
+        printboard(board);
+        struct Move *end = genallmoves(moves, board, (i % 2 == 0), true);
+        nummoves = end - &(moves[0]);
+        if (nummoves == 0) {
+            printf("Checkmate, %s wins!\n", (i % 2 == 0) ? "black" : "white");
+            exit(0);
+        }
+
+        /* take input */
+        while (true) {
+            printf("%d moves\n", nummoves);
+            takeinput(input);
+            move = parseinput(input, moves, nummoves);
+            if (move == NULL)
+                printf("\033[F\33[2K\033[F");
+            else
+                break;
+        }
+        makemove(move, board);
+        CLS
+        i++;
+    }
+}
+
+/* parseinput: find move that matches input; returns pointer to the best
+ * matching move */
+struct Move* parseinput(char *s, struct Move *moves, int nummoves) {
+    int i, yf, xf, yo, xo, max;
+    char c, piece;
+    yf = xf = yo = xo = -1;
+    piece = -1;
+    max = INPUTSIZE-1;
+    struct Move move;
+    for ( i = INPUTSIZE-1; i >= 0; i--) {
+        c = s[i];
+        if (c == 0)
+            continue;
+        else if (isdigit(c)) {
+            max = i;
+            yf = 7 - (c - 49);
+        } else if (isalpha(c)) {
+            if (xf == -1)
+                xf = c - 97;
+            else if (i == 0 && max > 1)
+                piece = c;
+            else
+                xo = c - 97;
+        }
+    }
+    for (i = 0; i < nummoves; i++) {
+        move = moves[i];
+        if (move.xf == xf && move.yf == yf)
+            if (((piece == -1) && (tolower(move.piece) == 'p')) || move.piece == piece)
+                if (xo == -1 || move.xo == xo)
+                    return &(moves[i]);
+    }
+    return NULL;
 }
 
 /* printmove: translate list indeces to chess ranks and files and print*/
