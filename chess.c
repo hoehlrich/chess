@@ -3,20 +3,38 @@
 
 #define LEN(x) (sizeof(x) / sizeof(x[0]))
 
-bool isopponent(char piece, char target);
-bool insideboard(int y, int x);
-bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white);
-struct Move newmove(int yo, int xo, int yf, int xf, char piece);
 struct Move* genpiecemoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
-struct Move* pawnmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
-struct Move* knightmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* slidingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
+struct Move* knightmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
+struct Move* pawnmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
 struct Move* kingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN]);
+struct Move newmove(int yo, int xo, int yf, int xf, char piece);
+bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white);
+bool insideboard(int y, int x);
+bool isopponent(char piece, char target);
 void unmakemove(struct Move *move, int (*board)[BLEN], int op);
 
 static const int yd[] = { 1, 1, -1, -1, 1, 0, -1, 0 };
 static const int xd[] = { 1, -1, 1, -1, 0, 1, 0, -1 };
 
+/* genboard: generate a board from a fen into *board */
+void genboard(char *fen, int (*board)[BLEN]) {
+    char c;
+    int i, x, y;
+    i = x = y = 0;
+    while ((c = fen[i++]) != '\0') {
+        if (isalpha(c))
+            board[y][x++] = c;
+        else if (isdigit(c))
+            x += c - 48;
+        else if (c == '/') {
+            x = 0;
+            y++;
+        }
+    }
+}
+
+/* checking: given moves, can the white/black king be taken? (in check)*/
 bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white) {
     int i;
     struct Move move;
@@ -34,22 +52,25 @@ bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white) 
     return false;
 }
 
+/* makemove: execute move on board */
 void makemove(struct Move *move, int (*board)[BLEN]) {
     board[move->yo][move->xo] = 0;
     board[move->yf][move->xf] = move->piece;
 }
 
-/* unmake move: undo move; op is original piece on the target square */
+/* unmakemove: undo move; op is original piece on the target square */
 void unmakemove(struct Move *move, int (*board)[BLEN], int op) {
     board[move->yo][move->xo] = move->piece;
     board[move->yf][move->xf] = op;
 }
 
+/* newmove: constructor for Move */
 struct Move newmove(int yo, int xo, int yf, int xf, char piece) {
     struct Move move = { yo, xo, yf, xf, piece };
     return move;
 }
 
+/* isopponent: is piece an opponent of target? */
 bool isopponent(char piece, char target) {
     return (isupper(piece) && islower(target)) || (islower(piece) && isupper(target));
 }
