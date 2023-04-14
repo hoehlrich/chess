@@ -15,7 +15,7 @@ struct Move* parseinput(char *s, struct Move *moves, int nummoves) {
     max = INPUTSIZE-1;
     struct Move move;
     for ( i = INPUTSIZE-1; i >= 0; i--) {
-        c = s[i];
+        c = tolower(s[i]);
         if (c == 0)
             continue;
         else if (isdigit(c)) {
@@ -33,7 +33,7 @@ struct Move* parseinput(char *s, struct Move *moves, int nummoves) {
     for (i = 0; i < nummoves; i++) {
         move = moves[i];
         if (move.xf == xf && move.yf == yf)
-            if (((piece == -1) && (tolower(move.piece) == 'p')) || move.piece == piece)
+            if (((piece == -1) && (tolower(move.piece) == 'p')) || tolower(move.piece) == piece)
                 if (xo == -1 || move.xo == xo)
                     return &(moves[i]);
     }

@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
     struct Move moves[MAXMOVES];
     struct Move *move;
     int board[BLEN][BLEN] = {{0}};
-    char input[INPUTSIZE];
-    int i, nummoves;
+    char input[INPUTSIZE], key;
+    int i, j, nummoves, ip;
 
     extern SDL_Window *window;
     extern SDL_Renderer *renderer;
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     genboard(INITFEN, board);
 
-    i = 0;
+    i = ip = 0;
     SDL_Event event;
     SDL_Texture *texture;
     do {
@@ -40,18 +40,27 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
-        while (true) {
-            printf("%d moves\n", nummoves);
-            takeinput(input);
-            move = parseinput(input, moves, nummoves);
-            if (move == NULL)
-                printf("\033[F\33[2K\033[F");
-            else
+
+        /* Handle input */
+        key = keyboard_input(&event);
+        switch (key) {
+            case -1:
+                break;
+            case 0: /* Enter */
+                ip = 0;
+                move = parseinput(input, moves, nummoves);
+                if (move != NULL) {
+                    makemove(move, board);
+                    i++;
+                }
+                for (j = 0; j < INPUTSIZE; j++)
+                    input[j] = 0;
+                break;
+            default:
+                input[ip++] = key;
                 break;
         }
-        makemove(move, board);
-        CLS
-        i++;
+        printf("%s\n", input);
     } while (!(event.key.keysym.sym == SDLK_ESCAPE));
 
     SDL_DestroyWindow(window);

@@ -25,5 +25,6 @@ void printboard(int (*board)[BLEN]);
 void printmove(struct Move *move);
 void takeinput(char *s);
 void renderboard(SDL_Surface *surface, int (*board)[BLEN]);
+char keyboard_input(SDL_Event *event);
 int init();
 

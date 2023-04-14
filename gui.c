@@ -31,6 +31,58 @@ int init() {
     return 0;
 }
 
+char keyboard_input(SDL_Event *event) {
+    if (event->type != SDL_KEYDOWN)
+        return -1;
+    switch (event->key.keysym.sym) {
+        case SDLK_a:
+            return 'a';
+        case SDLK_b:
+            return 'b';
+        case SDLK_c:
+            return 'c';
+        case SDLK_d:
+            return 'd';
+        case SDLK_e:
+            return 'e';
+        case SDLK_f:
+            return 'f';
+        case SDLK_g:
+            return 'g';
+        case SDLK_h:
+            return 'h';
+        case SDLK_k:
+            return 'k';
+        case SDLK_n:
+            return 'n';
+        case SDLK_p:
+            return 'p';
+        case SDLK_r:
+            return 'r';
+        case SDLK_s:
+            return 's';
+        case SDLK_1:
+            return '1';
+        case SDLK_2:
+            return '2';
+        case SDLK_3:
+            return '3';
+        case SDLK_4:
+            return '4';
+        case SDLK_5:
+            return '5';
+        case SDLK_6:
+            return '6';
+        case SDLK_7:
+            return '7';
+        case SDLK_8:
+            return '8';
+        case SDLK_RETURN:
+            return 0;
+    }
+    return -1;
+}
+
 void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     Uint32 dark = SDL_MapRGB(surface->format, 130, 76, 26);
     Uint32 light = SDL_MapRGB(surface->format, 226, 194, 97);
