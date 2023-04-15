@@ -57,6 +57,8 @@ char keyboard_input(SDL_Event *event) {
             return 'n';
         case SDLK_p:
             return 'p';
+        case SDLK_q:
+            return 'q';
         case SDLK_r:
             return 'r';
         case SDLK_s:
@@ -89,7 +91,7 @@ void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     int y, x;
     SDL_Rect square = { 0, 0, WIDTH/BLEN, HEIGHT/BLEN };
     SDL_Rect dstpiece = { 0, 0, 64, 64 };
-    SDL_Surface *pieces = IMG_Load("pieces.svg.png");
+    SDL_Surface *pieces = IMG_Load("assets/pieces.svg.png");
 
     SDL_Rect k = { 0, 0, 320, 320 };
     SDL_Rect q = { 320, 0, 320, 320 };

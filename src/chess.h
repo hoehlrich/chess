@@ -7,7 +7,7 @@
 #define CLS printf("\e[1;1H\e[2J");
 #define BLEN 8
 #define MAXMOVES 512
-#define INPUTSIZE 5
+#define INPUTSIZE 4
 
 struct Move {
     int yo;
@@ -27,4 +27,5 @@ void takeinput(char *s);
 void renderboard(SDL_Surface *surface, int (*board)[BLEN]);
 char keyboard_input(SDL_Event *event);
 int init();
+void clrstr(char *s);
 

@@ -11,8 +11,10 @@ int main(int argc, char *argv[]) {
     struct Move moves[MAXMOVES];
     struct Move *move;
     int board[BLEN][BLEN] = {{0}};
-    char input[INPUTSIZE], key;
+    char input[INPUTSIZE+1], key;
     int i, j, nummoves, ip;
+
+    input[INPUTSIZE] = '\0';
 
     extern SDL_Window *window;
     extern SDL_Renderer *renderer;
@@ -40,7 +42,6 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
-
         /* Handle input */
         key = keyboard_input(&event);
         switch (key) {
@@ -52,15 +53,20 @@ int main(int argc, char *argv[]) {
                 if (move != NULL) {
                     makemove(move, board);
                     i++;
-                }
-                for (j = 0; j < INPUTSIZE; j++)
-                    input[j] = 0;
+                } else
+                    printf("%s does not exist\n", input);
+                clrstr(input);
                 break;
             default:
-                input[ip++] = key;
+                if (ip == INPUTSIZE) {
+                    clrstr(input);
+                    ip = 0;
+                } else {
+                    input[ip++] = key;
+                }
                 break;
         }
-        printf("%s\n", input);
+        // printf("%d %s\n", ip, input);
     } while (!(event.key.keysym.sym == SDLK_ESCAPE));
 
     SDL_DestroyWindow(window);

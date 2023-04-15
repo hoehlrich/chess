@@ -5,6 +5,14 @@
 #define BOTBOR  " |_____|_____|_____|_____|_____|_____|_____|_____|\n"
 #define FILES   "    a     b     c     d     e     f     g     h\n"
 
+/* clrstr: clear string s */
+void clrstr(char *s) {
+    int i;
+    for (i = 0; s[i] != '\0'; s[i++] = 0)
+        ;
+}
+
+
 /* parseinput: find move that matches input; returns pointer to the best
  * matching move */
 struct Move* parseinput(char *s, struct Move *moves, int nummoves) {
@@ -12,9 +20,9 @@ struct Move* parseinput(char *s, struct Move *moves, int nummoves) {
     char c, piece;
     yf = xf = yo = xo = -1;
     piece = -1;
-    max = INPUTSIZE-1;
+    max = INPUTSIZE;
     struct Move move;
-    for ( i = INPUTSIZE-1; i >= 0; i--) {
+    for ( i = INPUTSIZE; i >= 0; i--) {
         c = tolower(s[i]);
         if (c == 0)
             continue;

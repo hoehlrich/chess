@@ -1,14 +1,21 @@
-chess : main.o chess.o text.o gui.o
-	gcc main.o chess.o text.o gui.o -o chess -lSDL2_image $$(sdl2-config --libs)
 
-main.o : main.c
-	gcc -c main.c
+objects := $(patsubst src%, target%, $(patsubst %.c,%.o,$(wildcard src/*.c)))
+headers := $(wildcard src/*.h)
 
-chess.o : chess.c
-	gcc -c chess.c
+chess : $(objects) $(headers)
+	gcc $(objects) $(headers) -o target/chess -lSDL2_image $$(sdl2-config --libs)
 
-text.o : text.c
-	gcc -c text.c
+target/main.o : src/main.c src/chess.h
+	gcc -c src/main.c -o target/main.o
 
-gui.o : gui.c
-	gcc -c gui.c $$(sdl2-config --cflags)
+target/chess.o : src/chess.c src/chess.h
+	gcc -c src/chess.c -o target/chess.o
+
+target/lib.o : src/lib.c src/chess.h
+	gcc -c src/lib.c -o target/lib.o
+
+target/gui.o : src/gui.c src/chess.h
+	gcc -c src/gui.c $$(sdl2-config --cflags) -o target/gui.o
+
+clean :
+	rm target/*
