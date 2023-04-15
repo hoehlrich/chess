@@ -1,4 +1,6 @@
 #include "chess.h"
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_render.h>
 
 #define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr"
@@ -7,7 +9,6 @@
 int main(int argc, char *argv[]) {
     init();
 
-    CLS
     struct Move moves[MAXMOVES];
     struct Move *move;
     int board[BLEN][BLEN] = {{0}};
@@ -43,33 +44,28 @@ int main(int argc, char *argv[]) {
         }
 
         /* Handle input */
-        key = keyboard_input(&event);
-        switch (key) {
-            case -1:
-                break;
-            case 0: /* Enter */
-                ip = 0;
-                move = parseinput(input, moves, nummoves);
-                if (move != NULL) {
-                    makemove(move, board);
-                    i++;
-                } else
-                    printf("%s does not exist\n", input);
+        key = event.key.keysym.sym;
+        if (event.type != SDL_KEYDOWN) {
+            ;
+        } else if (key == SDLK_RETURN) {
+            ip = 0;
+            move = parseinput(input, moves, nummoves);
+            if (move != NULL) {
+                makemove(move, board);
+                i++;
+            } else
+                printf("%s does not exist\n", input);
+            clrstr(input);
+        } else if ((isalpha(key) && islower(key)) || isdigit(key)) {
+            if (ip == INPUTSIZE) {
                 clrstr(input);
-                break;
-            default:
-                if (ip == INPUTSIZE) {
-                    clrstr(input);
-                    ip = 0;
-                } else {
-                    input[ip++] = key;
-                }
-                break;
+                ip = 0;
+            } else {
+                input[ip++] = key;
+            }
         }
-        // printf("%d %s\n", ip, input);
     } while (!(event.key.keysym.sym == SDLK_ESCAPE));
 
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
-
