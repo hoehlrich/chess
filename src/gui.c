@@ -76,6 +76,7 @@ void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     }
 }
 
+/* newrect: constructor for SDL_Rect */
 SDL_Rect newrect(int x, int y, int w, int h) {
     SDL_Rect rect = { x, y, w, h };
     return rect;

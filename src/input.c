@@ -53,6 +53,7 @@ void printmove(struct Move *move) {
     printf("%c%c%i %c%i\n", move->piece, move->xo+97, 8-move->yo, move->xf+97, 8-move->yf);
 }
 
+/* takeinput: take text input into pointer to input string */
 void takeinput(char *s) {
     char c;
     int i;

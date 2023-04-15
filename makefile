@@ -1,4 +1,3 @@
-
 objects := $(patsubst src%, target%, $(patsubst %.c,%.o,$(wildcard src/*.c)))
 headers := $(wildcard src/*.h)
 
@@ -11,8 +10,8 @@ target/main.o : src/main.c src/chess.h
 target/chess.o : src/chess.c src/chess.h
 	gcc -c src/chess.c -o target/chess.o
 
-target/lib.o : src/lib.c src/chess.h
-	gcc -c src/lib.c -o target/lib.o
+target/input.o : src/input.c src/chess.h
+	gcc -c src/input.c -o target/input.o
 
 target/gui.o : src/gui.c src/chess.h
 	gcc -c src/gui.c $$(sdl2-config --cflags) -o target/gui.o
