@@ -1,6 +1,7 @@
 #include "chess.h" 
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_video.h>
@@ -9,6 +10,8 @@
 #define WIDTH   512
 #define HEIGHT  512
 #define BLIT(src) SDL_BlitScaled(pieces, &src, surface, &dstpiece)
+
+SDL_Rect newrect(int x, int y, int w, int h);
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -40,61 +43,28 @@ void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     SDL_Rect square = { 0, 0, WIDTH/BLEN, HEIGHT/BLEN };
     SDL_Rect dstpiece = { 0, 0, 64, 64 };
     SDL_Surface *pieces = IMG_Load("assets/pieces.svg.png");
+    SDL_Rect atlas[50];
 
-    SDL_Rect k = { 0, 0, 320, 320 };
-    SDL_Rect q = { 320, 0, 320, 320 };
-    SDL_Rect b = { 640, 0, 320, 320 };
-    SDL_Rect n = { 960, 0, 320, 320 };
-    SDL_Rect r = { 1280, 0, 320, 320 };
-    SDL_Rect p = { 1600, 0, 320, 320 };
-    SDL_Rect K = { 0, 320, 320, 320 };
-    SDL_Rect Q = { 320, 320, 320, 320 };
-    SDL_Rect B = { 640, 320, 320, 320 };
-    SDL_Rect N = { 960, 320, 320, 320 };
-    SDL_Rect R = { 1280, 320, 320, 320 };
-    SDL_Rect P = { 1600, 320, 320, 320 };
+    atlas[42] = newrect(0, 0, 320, 320);        /* k */
+    atlas[48] = newrect(320, 0, 320, 320);      /* q */
+    atlas[33] = newrect(640, 0, 320, 320);      /* b */
+    atlas[45] = newrect(960, 0, 320, 320);      /* n */
+    atlas[49] = newrect(1280, 0, 320, 320);     /* r */
+    atlas[47] = newrect(1600, 0, 320, 320);     /* p */
+    atlas[10] = newrect(0, 320, 320, 320);      /* K */
+    atlas[16] = newrect(320, 320, 320, 320);    /* Q */
+    atlas[1]  = newrect(640, 320, 320, 320);    /* B */
+    atlas[13] = newrect(960, 320, 320, 320);    /* N */
+    atlas[17] = newrect(1280, 320, 320, 320);   /* R */
+    atlas[15] = newrect(1600, 320, 320, 320);   /* P */
 
+    SDL_Rect king = { 256, 448, 64, 64 };
     for (y = 0; y < BLEN; y++) {
         for (x = 0; x < BLEN; x++) {
             SDL_FillRect(surface, &square, (y + x) % 2 ? dark : light);
-            switch (board[y][x]) {
-                case 'k':
-                    BLIT(k);
-                    break;
-                case 'q':
-                    BLIT(q);
-                    break;
-                case 'r':
-                    BLIT(r);
-                    break;
-                case 'b':
-                    BLIT(b);
-                    break;
-                case 'n':
-                    BLIT(n);
-                    break;
-                case 'p':
-                    BLIT(p);
-                    break;
-                case 'K':
-                    BLIT(K);
-                    break;
-                case 'Q':
-                    BLIT(Q);
-                    break;
-                case 'R':
-                    BLIT(R);
-                    break;
-                case 'B':
-                    BLIT(B);
-                    break;
-                case 'N':
-                    BLIT(N);
-                    break;
-                case 'P':
-                    BLIT(P);
-                    break;
-            }
+            if (isalpha(board[y][x]))
+                SDL_BlitScaled(pieces, &atlas[board[y][x]-65], surface, &dstpiece);
+
             square.x += WIDTH/BLEN;
             dstpiece.x += WIDTH/BLEN;
         }
@@ -106,3 +76,7 @@ void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     }
 }
 
+SDL_Rect newrect(int x, int y, int w, int h) {
+    SDL_Rect rect = { x, y, w, h };
+    return rect;
+}

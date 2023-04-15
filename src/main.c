@@ -35,7 +35,6 @@ int main(int argc, char *argv[]) {
         SDL_RenderPresent(renderer);
         SDL_Delay(20);
 
-
         struct Move *end = genallmoves(moves, board, (i % 2 == 0), true);
         nummoves = end - &(moves[0]);
         if (nummoves == 0) {
