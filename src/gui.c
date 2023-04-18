@@ -35,11 +35,19 @@ int init() {
     return 0;
 }
 
-/* renderboard: render the game board and pieces given the board pointer */
-void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
+void renderboard(SDL_Renderer *renderer, SDL_Surface *screensurface, SDL_Texture *texture) {
+    SDL_RenderClear(renderer);
+    texture = SDL_CreateTextureFromSurface(renderer, screensurface);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
+/* blitboard: blit the game board and pieces given the board pointer */
+void blitboard(SDL_Surface *surface, int (*board)[BLEN], bool white) {
     Uint32 dark = SDL_MapRGB(surface->format, 130, 76, 26);
     Uint32 light = SDL_MapRGB(surface->format, 226, 194, 97);
     int y, x;
+    char piece;
     SDL_Rect square = { 0, 0, WIDTH/BLEN, HEIGHT/BLEN };
     SDL_Rect dstpiece = { 0, 0, 64, 64 };
     SDL_Surface *pieces = IMG_Load("assets/pieces.svg.png");
@@ -61,9 +69,10 @@ void renderboard(SDL_Surface *surface, int (*board)[BLEN]) {
     SDL_Rect king = { 256, 448, 64, 64 };
     for (y = 0; y < BLEN; y++) {
         for (x = 0; x < BLEN; x++) {
+            piece = white ? board[y][x] : board[(BLEN - 1) - y][x];
             SDL_FillRect(surface, &square, (y + x) % 2 ? dark : light);
-            if (isalpha(board[y][x]))
-                SDL_BlitScaled(pieces, &atlas[board[y][x]-65], surface, &dstpiece);
+            if (isalpha(piece))
+                SDL_BlitScaled(pieces, &atlas[piece-65], surface, &dstpiece);
 
             square.x += WIDTH/BLEN;
             dstpiece.x += WIDTH/BLEN;

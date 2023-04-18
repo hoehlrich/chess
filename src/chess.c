@@ -17,123 +17,9 @@ void unmakemove(struct Move *move, int (*board)[BLEN], int op);
 static const int yd[] = { 1, 1, -1, -1, 1, 0, -1, 0 };
 static const int xd[] = { 1, -1, 1, -1, 0, 1, 0, -1 };
 
-/* updatecastlestate: update castlestate from move */
-void updatecastlestate(struct Move *move, struct CastleState *castlestate) {
-    if ((move->piece == 'k') && (abs(move->xo - move->xf) > 1)) {
-        castlestate->lrmoved = true;
-        castlestate->rrmoved = true;
-        castlestate->kmoved = true;
-    } else if ((move->piece == 'K') && (abs(move->xo - move->xf) > 1)) {
-        castlestate->lRmoved = true;
-        castlestate->rRmoved = true;
-        castlestate->Kmoved = true;
-    }
-    switch (move->piece) {
-        case 'r':
-            if (move->xo == 0)
-                castlestate->lrmoved = true;
-            else
-                castlestate->rrmoved = true;
-            break;
-        case 'R':
-            if (move->xo == 0)
-                castlestate->lRmoved = true;
-            else
-                castlestate->rRmoved = true;
-            break;
-        case 'k':
-            castlestate->kmoved = true;
-            break;
-        case 'K':
-            castlestate->Kmoved = true;
-            break;
-    }
-}
-
-/* genboard: generate a board from a fen into *board */
-void genboard(char *fen, int (*board)[BLEN]) {
-    char c;
-    int i, x, y;
-    i = x = y = 0;
-    while ((c = fen[i++]) != '\0') {
-        if (isalpha(c))
-            board[y][x++] = c;
-        else if (isdigit(c))
-            x += c - 48;
-        else if (c == '/') {
-            x = 0;
-            y++;
-        }
-    }
-}
-
-/* checking: given moves, can the white/black king be taken? (in check)*/
-bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white) {
-    int i;
-    struct Move move;
-    for (i = 0; i < nummoves; i++) {
-        move = moves[i];
-        if (white) {
-            if (board[move.yf][move.xf] == 'k')
-                return true;
-        } else {
-            if (board[move.yf][move.xf] == 'K')
-                return true;
-        }
-    }
-
-    return false;
-}
-
-/* makemove: execute move on board */
-void makemove(struct Move *move, int (*board)[BLEN]) {
-    if ((tolower(move->piece) == 'k') && (abs(move->xf - move->xo) > 1)) {
-        if (move->xf == 6) { /* kingside */
-            board[move->yo][7] = 0;
-            board[move->yo][5] = islower(move->piece) ? 'r' : 'R';
-        } else if (move->xf == 2) { /* queenside */
-            board[move->yo][0] = 0;
-            board[move->yo][3] = islower(move->piece) ? 'r' : 'R';
-        }
-    }
-    board[move->yo][move->xo] = 0;
-    board[move->yf][move->xf] = move->piece;
-}
-
-/* unmakemove: undo move; op is original piece on the target square */
-void unmakemove(struct Move *move, int (*board)[BLEN], int op) {
-    if ((tolower(move->piece) == 'k') && (abs(move->xf - move->xo) > 1)) {
-        if (move->xf == 6) { /* kingside */
-            board[move->yo][7] = islower(move->piece) ? 'r' : 'R';
-            board[move->yo][5] = 0;
-        } else if (move->xf == 2) { /* queenside */
-            board[move->yo][0] = islower(move->piece) ? 'r' : 'R';
-            board[move->yo][3] = 0;
-        }
-    }
-    board[move->yo][move->xo] = move->piece;
-    board[move->yf][move->xf] = op;
-}
-
-/* newmove: constructor for Move */
-struct Move newmove(int yo, int xo, int yf, int xf, char piece) {
-    struct Move move = { yo, xo, yf, xf, piece };
-    return move;
-}
-
-/* isopponent: is piece an opponent of target? */
-bool isopponent(char piece, char target) {
-    return (isupper(piece) && islower(target)) || (islower(piece) && isupper(target));
-}
-
-bool insideboard(int y, int x) {
-    return (y < 8 && y >= 0 && x < 8 && x >= 0);
-}
-
 /* genallmoves: generate all moves for a player on top of *move. Returns a
  * pointer to the last element */
 struct Move* genallmoves(struct Move *moves, int (*board)[BLEN], bool white, bool checkcheck, struct CastleState *castlestate) {
-    CLS
     int x, y;
     struct Move *initmoves = moves;
     for (y = 0; y < BLEN; y++)
@@ -306,3 +192,118 @@ struct Move* kingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN], s
 
     return &moves[i];
 }
+
+/* insideboard: are coords inside of chess board */
+bool insideboard(int y, int x) {
+    return (y < 8 && y >= 0 && x < 8 && x >= 0);
+}
+
+/* isopponent: is piece an opponent of target? */
+bool isopponent(char piece, char target) {
+    return (isupper(piece) && islower(target)) || (islower(piece) && isupper(target));
+}
+
+/* checking: given moves, can the white/black king be taken? (in check)*/
+bool checking(struct Move *moves, int nummoves, int (*board)[BLEN], bool white) {
+    int i;
+    struct Move move;
+    for (i = 0; i < nummoves; i++) {
+        move = moves[i];
+        if (white) {
+            if (board[move.yf][move.xf] == 'k')
+                return true;
+        } else {
+            if (board[move.yf][move.xf] == 'K')
+                return true;
+        }
+    }
+
+    return false;
+}
+
+/* newmove: constructor for Move */
+struct Move newmove(int yo, int xo, int yf, int xf, char piece) {
+    struct Move move = { yo, xo, yf, xf, piece };
+    return move;
+}
+
+/* makemove: execute move on board */
+void makemove(struct Move *move, int (*board)[BLEN]) {
+    if ((tolower(move->piece) == 'k') && (abs(move->xf - move->xo) > 1)) {
+        if (move->xf == 6) { /* kingside */
+            board[move->yo][7] = 0;
+            board[move->yo][5] = islower(move->piece) ? 'r' : 'R';
+        } else if (move->xf == 2) { /* queenside */
+            board[move->yo][0] = 0;
+            board[move->yo][3] = islower(move->piece) ? 'r' : 'R';
+        }
+    }
+    board[move->yo][move->xo] = 0;
+    board[move->yf][move->xf] = move->piece;
+}
+
+/* unmakemove: undo move; op is original piece on the target square */
+void unmakemove(struct Move *move, int (*board)[BLEN], int op) {
+    if ((tolower(move->piece) == 'k') && (abs(move->xf - move->xo) > 1)) {
+        if (move->xf == 6) { /* kingside */
+            board[move->yo][7] = islower(move->piece) ? 'r' : 'R';
+            board[move->yo][5] = 0;
+        } else if (move->xf == 2) { /* queenside */
+            board[move->yo][0] = islower(move->piece) ? 'r' : 'R';
+            board[move->yo][3] = 0;
+        }
+    }
+    board[move->yo][move->xo] = move->piece;
+    board[move->yf][move->xf] = op;
+}
+
+/* updatecastlestate: update castlestate from move */
+void updatecastlestate(struct Move *move, struct CastleState *castlestate) {
+    if ((move->piece == 'k') && (abs(move->xo - move->xf) > 1)) {
+        castlestate->lrmoved = true;
+        castlestate->rrmoved = true;
+        castlestate->kmoved = true;
+    } else if ((move->piece == 'K') && (abs(move->xo - move->xf) > 1)) {
+        castlestate->lRmoved = true;
+        castlestate->rRmoved = true;
+        castlestate->Kmoved = true;
+    }
+    switch (move->piece) {
+        case 'r':
+            if (move->xo == 0)
+                castlestate->lrmoved = true;
+            else
+                castlestate->rrmoved = true;
+            break;
+        case 'R':
+            if (move->xo == 0)
+                castlestate->lRmoved = true;
+            else
+                castlestate->rRmoved = true;
+            break;
+        case 'k':
+            castlestate->kmoved = true;
+            break;
+        case 'K':
+            castlestate->Kmoved = true;
+            break;
+    }
+}
+
+/* genboard: generate a board from a fen into *board */
+void genboard(char *fen, int (*board)[BLEN]) {
+    char c;
+    int i, x, y;
+    i = x = y = 0;
+    while ((c = fen[i++]) != '\0') {
+        if (isalpha(c))
+            board[y][x++] = c;
+        else if (isdigit(c))
+            x += c - 48;
+        else if (c == '/') {
+            x = 0;
+            y++;
+        }
+    }
+}
+
