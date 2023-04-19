@@ -27,12 +27,13 @@ struct Move* genallmoves(struct Move *moves, int (*board)[BLEN], bool white, boo
             if ((islower(board[y][x]) && white) || (isupper(board[y][x]) && !white))
                 moves = genpiecemoves(moves, y, x, board, castlestate);
 
+    int i;
     /* break if not checking for checks (prevents infinite recursion */
     if (!checkcheck)
         return moves;
     
     /* remove moves that will result in a self-check */
-    int i, nummoves;
+    int nummoves;
     int op;
     struct Move move;
     struct Move testmoves[MAXMOVES];
@@ -184,7 +185,7 @@ struct Move* kingmoves(struct Move *moves, int yo, int xo, int (*board)[BLEN], s
         if ((!castlestate->lrmoved) && (board[7][2] == 0) && (board[7][3] == 0))
             moves[i++] = newmove(yo, xo, 7, 2, piece);
     } else if (isupper(piece) && (!castlestate->Kmoved)) {
-        if ((!castlestate->rRmoved) && (board[0][6] == 0) && (board[0][6] == 0))
+        if ((!castlestate->rRmoved) && (board[0][5] == 0) && (board[0][6] == 0))
             moves[i++] = newmove(yo, xo, 0, 6, piece);
         if ((!castlestate->lRmoved) && (board[0][2] == 0) && (board[0][3] == 0))
             moves[i++] = newmove(yo, xo, 0, 2, piece);

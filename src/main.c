@@ -6,7 +6,6 @@
 
 #define INITFEN "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr"
 
-
 int main(int argc, char *argv[]) {
     /* Intialize SDL */
     init();
